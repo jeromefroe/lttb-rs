@@ -1,6 +1,6 @@
 [package]
 name = "lttb"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Jerome Froelich <jeromefroelich@hotmail.com>"]
 description = "An implementation of the Largest Triangle Three Buckets algorithm"
 homepage = "https://github.com/jeromefroe/lttb-rs"
