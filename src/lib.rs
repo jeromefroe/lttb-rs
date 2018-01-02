@@ -25,6 +25,24 @@
 //! (https://skemman.is/bitstream/1946/15343/3/SS_MSthesis.pdf). This is a Rust port
 //! of [the original Javascript implementation]
 //! (https://github.com/sveinn-steinarsson/flot-downsample).
+//!
+//! ## Example
+//!
+//! ``` rust,no_run
+//! extern crate lttb;
+//!
+//! use lttb::{DataPoint,lttb};
+//!
+//! let mut raw = vec!();
+//! raw.push(DataPoint::new(0.0, 10.0));
+//! raw.push(DataPoint::new(1.0, 12.0));
+//! raw.push(DataPoint::new(2.0, 8.0));
+//! raw.push(DataPoint::new(3.0, 10.0));
+//! raw.push(DataPoint::new(4.0, 12.0));
+//!
+//! // Downsample the raw data to use just three datapoints.
+//! let downsampled = lttb(raw, 3);
+//! ```
 
 /// DataPoint
 ///
@@ -123,6 +141,7 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
 #[cfg(test)]
 mod tests {
     use super::{DataPoint,lttb};
+
     #[test]
     fn lttb_test() {
         let mut dps = vec!();
