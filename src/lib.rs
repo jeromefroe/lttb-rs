@@ -47,7 +47,7 @@ impl DataPoint {
     }
 }
 
-fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
+pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
     if threshold >= data.len() || threshold == 0 {
         // Nothing to do.
         return data;
@@ -121,4 +121,22 @@ fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::{DataPoint,lttb};
+    #[test]
+    fn lttb_test() {
+        let mut dps = vec!();
+        dps.push(DataPoint::new(0.0, 10.0));
+        dps.push(DataPoint::new(1.0, 12.0));
+        dps.push(DataPoint::new(2.0, 8.0));
+        dps.push(DataPoint::new(3.0, 10.0));
+        dps.push(DataPoint::new(4.0, 12.0));
+
+        let mut expected = vec!();
+        expected.push(DataPoint::new(0.0, 10.0));
+        expected.push(DataPoint::new(2.0, 8.0));
+        expected.push(DataPoint::new(4.0, 12.0));
+
+        assert_eq!(expected, lttb(dps, 3));
+    }
+}
