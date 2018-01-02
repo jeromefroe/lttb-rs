@@ -1,0 +1,13 @@
+[package]
+name = "lttb"
+version = "0.1.0"
+authors = ["Jerome Froelich <jeromefroelich@hotmail.com>"]
+description = "An implementation of the Largest Triangle Three Buckets algorithm"
+homepage = "https://github.com/jeromefroe/lttb-rs"
+repository = "https://github.com/jeromefroe/lttb-rs.git"
+documentation = "https://docs.rs/lttb/"
+readme = "README.md"
+license = "MIT"
+keywords = ["time", "series", "visualization", "downsampling"]
+
+[dependencies]
