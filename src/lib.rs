@@ -33,15 +33,17 @@
 //!
 //! use lttb::{DataPoint,lttb};
 //!
-//! let mut raw = vec!();
-//! raw.push(DataPoint::new(0.0, 10.0));
-//! raw.push(DataPoint::new(1.0, 12.0));
-//! raw.push(DataPoint::new(2.0, 8.0));
-//! raw.push(DataPoint::new(3.0, 10.0));
-//! raw.push(DataPoint::new(4.0, 12.0));
+//! fn main() {
+//!   let mut raw = vec!();
+//!   raw.push(DataPoint::new(0.0, 10.0));
+//!   raw.push(DataPoint::new(1.0, 12.0));
+//!   raw.push(DataPoint::new(2.0, 8.0));
+//!   raw.push(DataPoint::new(3.0, 10.0));
+//!   raw.push(DataPoint::new(4.0, 12.0));
 //!
-//! // Downsample the raw data to use just three datapoints.
-//! let downsampled = lttb(raw, 3);
+//!   // Downsample the raw data to use just three datapoints.
+//!   let downsampled = lttb(raw, 3);
+//! }
 //! ```
 
 /// DataPoint
