@@ -42,41 +42,67 @@
 //!   raw.push(DataPoint::new(4.0, 12.0));
 //!
 //!   // Downsample the raw data to use just three datapoints.
-//!   let downsampled = lttb(raw, 3);
+//!   let downsampled = lttb(&raw[..], 3);
 //! }
 //! ```
+
+extern crate num;
+
+use std::error::Error;
+use std::fmt;
+
+use num::Float;
+use num::cast::cast;
 
 /// DataPoint
 ///
 /// Struct used to represent a single datapoint in a time series.
 #[derive(Debug, PartialEq, Copy)]
-pub struct DataPoint {
-    x: f64,
-    y: f64,
+pub struct DataPoint<T: Float> {
+    x: T,
+    y: T,
 }
 
-impl Clone for DataPoint {
-    fn clone(&self) -> DataPoint {
+impl<T: Float> Clone for DataPoint<T> {
+    fn clone(&self) -> DataPoint<T> {
         *self
     }
 }
 
-impl DataPoint {
-    pub fn new(x: f64, y: f64) -> Self {
+impl<T: Float> DataPoint<T> {
+    pub fn new(x: T, y: T) -> Self {
         DataPoint { x: x, y: y }
     }
 }
 
-pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
+#[derive(Debug)]
+pub struct ConversionError;
+
+// TODO: Improve error messages.
+impl Error for ConversionError {
+    fn description(&self) -> &str {
+        "type conversion failed"
+    }
+}
+
+impl fmt::Display for ConversionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "type conversion failed")
+    }
+}
+
+const CONVERSION_ERROR: ConversionError = ConversionError{};
+
+pub fn lttb<T: Float>(data: &[DataPoint<T>], threshold: usize) -> Result<Option<Vec<DataPoint<T>>>, ConversionError> {
     if threshold >= data.len() || threshold == 0 {
         // Nothing to do.
-        return data;
+        return Ok(None);
     }
 
     let mut sampled = Vec::with_capacity(threshold);
 
     // Bucket size. Leave room for start and end data points.
-    let every = ((data.len() - 2) as f64) / ((threshold - 2) as f64);
+    let every = T::from(data.len() - 2).ok_or(CONVERSION_ERROR)? / T::from(threshold - 2).ok_or(CONVERSION_ERROR)?;
 
     // Initially a is the first point in the triangle.
     let mut a = 0;
@@ -86,36 +112,42 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
 
     for i in 0..threshold - 2 {
         // Calculate point average for next bucket (containing c).
-        let mut avg_x = 0f64;
-        let mut avg_y = 0f64;
+        let mut avg_x = T::zero();
+        let mut avg_y = T::zero();
 
-        let avg_range_start = (((i + 1) as f64) * every) as usize + 1;
+        // TODO: Investigate further why the compiler is unable to infer the type properly
+        // if we combine the following two lines into a single expression.
+        let temp_cast: Option<usize> = cast(T::from(i + 1).ok_or(CONVERSION_ERROR)? * every);
+        let avg_range_start = temp_cast.ok_or(CONVERSION_ERROR)? + 1;
 
-        let mut end = (((i + 2) as f64) * every) as usize + 1;
+        let temp_cast: Option<usize> = cast(T::from(i + 2).ok_or(CONVERSION_ERROR)? * every);
+        let mut end = temp_cast.ok_or(CONVERSION_ERROR)? + 1;
         if end >= data.len() {
             end = data.len();
         }
         let avg_range_end = end;
 
-        let avg_range_length = (avg_range_end - avg_range_start) as f64;
+        let avg_range_length = T::from(avg_range_end - avg_range_start).ok_or(CONVERSION_ERROR)?;
 
         for i in 0..(avg_range_end - avg_range_start) {
             let idx = (avg_range_start + i) as usize;
-            avg_x += data[idx].x;
-            avg_y += data[idx].y;
+            avg_x = avg_x + data[idx].x;
+            avg_y = avg_y + data[idx].y;
         }
-        avg_x /= avg_range_length;
-        avg_y /= avg_range_length;
+        avg_x = avg_x / avg_range_length;
+        avg_y = avg_y / avg_range_length;
 
         // Get the range for this bucket.
-        let range_offs = (((i + 0) as f64) * every) as usize + 1;;
-        let range_to = (((i + 1) as f64) * every) as usize + 1;;
+        let temp_cast: Option<usize> = cast(T::from(i + 0).ok_or(CONVERSION_ERROR)? * every);
+        let range_offs = temp_cast.ok_or(CONVERSION_ERROR)? + 1;
+        let temp_cast: Option<usize> = cast(T::from(i + 1).ok_or(CONVERSION_ERROR)? * every);
+        let range_to =  temp_cast.ok_or(CONVERSION_ERROR)? + 1;
 
         // Point a.
         let point_a_x = data[a].x;
         let point_a_y = data[a].y;
 
-        let mut max_area = -1f64;
+        let mut max_area = T::from(-1).ok_or(CONVERSION_ERROR)?;
         let mut next_a = range_offs;
         for i in 0..(range_to - range_offs) {
             let idx = (range_offs + i) as usize;
@@ -123,7 +155,7 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
             // Calculate triangle area over three buckets.
             let area = ((point_a_x - avg_x) * (data[idx].y - point_a_y) -
                         (point_a_x - data[idx].x) * (avg_y - point_a_y))
-                .abs() * 0.5;
+                .abs() * T::from(0.5).ok_or(CONVERSION_ERROR)?;
             if area > max_area {
                 max_area = area;
                 next_a = idx; // Next a is this b.
@@ -137,7 +169,7 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
     // Always add the last point.
     sampled.push(data[data.len() - 1]);
 
-    sampled
+    Ok(Some(sampled))
 }
 
 #[cfg(test)]
@@ -158,6 +190,6 @@ mod tests {
         expected.push(DataPoint::new(2.0, 8.0));
         expected.push(DataPoint::new(4.0, 12.0));
 
-        assert_eq!(expected, lttb(dps, 3));
+        assert_eq!(expected, lttb(&dps[..], 3).unwrap().unwrap());
     }
 }

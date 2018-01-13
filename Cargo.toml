@@ -11,3 +11,4 @@ license = "MIT"
 keywords = ["time", "series", "visualization", "downsampling"]
 
 [dependencies]
+num = "0.1.41"
