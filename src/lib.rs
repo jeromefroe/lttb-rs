@@ -108,8 +108,8 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
         avg_y /= avg_range_length;
 
         // Get the range for this bucket.
-        let range_offs = (((i + 0) as f64) * every) as usize + 1;;
-        let range_to = (((i + 1) as f64) * every) as usize + 1;;
+        let range_offs = (((i + 0) as f64) * every) as usize + 1;
+        let range_to = (((i + 1) as f64) * every) as usize + 1;
 
         // Point a.
         let point_a_x = data[a].x;
