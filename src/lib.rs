@@ -63,7 +63,7 @@ impl Clone for DataPoint {
 
 impl DataPoint {
     pub fn new(x: f64, y: f64) -> Self {
-        DataPoint { x: x, y: y }
+        DataPoint { x, y }
     }
 }
 
@@ -108,7 +108,7 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
         avg_y /= avg_range_length;
 
         // Get the range for this bucket.
-        let range_offs = (((i + 0) as f64) * every) as usize + 1;
+        let range_offs = ((i as f64) * every) as usize + 1;
         let range_to = (((i + 1) as f64) * every) as usize + 1;
 
         // Point a.
@@ -121,8 +121,8 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
             let idx = (range_offs + i) as usize;
 
             // Calculate triangle area over three buckets.
-            let area = ((point_a_x - avg_x) * (data[idx].y - point_a_y) -
-                        (point_a_x - data[idx].x) * (avg_y - point_a_y))
+            let area = ((point_a_x - avg_x) * (data[idx].y - point_a_y)
+                - (point_a_x - data[idx].x) * (avg_y - point_a_y))
                 .abs() * 0.5;
             if area > max_area {
                 max_area = area;
@@ -130,7 +130,7 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
             }
         }
 
-        sampled.push(data[next_a]);  // Pick this point from the bucket.
+        sampled.push(data[next_a]); // Pick this point from the bucket.
         a = next_a; // This a is the next a (chosen b).
     }
 
@@ -142,18 +142,18 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
 
 #[cfg(test)]
 mod tests {
-    use super::{DataPoint,lttb};
+    use super::{lttb, DataPoint};
 
     #[test]
     fn lttb_test() {
-        let mut dps = vec!();
+        let mut dps = vec![];
         dps.push(DataPoint::new(0.0, 10.0));
         dps.push(DataPoint::new(1.0, 12.0));
         dps.push(DataPoint::new(2.0, 8.0));
         dps.push(DataPoint::new(3.0, 10.0));
         dps.push(DataPoint::new(4.0, 12.0));
 
-        let mut expected = vec!();
+        let mut expected = vec![];
         expected.push(DataPoint::new(0.0, 10.0));
         expected.push(DataPoint::new(2.0, 8.0));
         expected.push(DataPoint::new(4.0, 12.0));
