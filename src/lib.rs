@@ -123,7 +123,8 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
             // Calculate triangle area over three buckets.
             let area = ((point_a_x - avg_x) * (data[idx].y - point_a_y)
                 - (point_a_x - data[idx].x) * (avg_y - point_a_y))
-                .abs() * 0.5;
+                .abs()
+                * 0.5;
             if area > max_area {
                 max_area = area;
                 next_a = idx; // Next a is this b.
