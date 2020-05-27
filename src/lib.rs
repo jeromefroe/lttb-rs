@@ -49,16 +49,10 @@
 /// DataPoint
 ///
 /// Struct used to represent a single datapoint in a time series.
-#[derive(Debug, PartialEq, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct DataPoint {
-    x: f64,
-    y: f64,
-}
-
-impl Clone for DataPoint {
-    fn clone(&self) -> DataPoint {
-        *self
-    }
+    pub x: f64,
+    pub y: f64,
 }
 
 impl DataPoint {
