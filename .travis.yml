@@ -41,7 +41,7 @@ matrix:
     - env: NAME="nightly"
       rust: nightly
     - env: NAME="format"
-      rust: nightly
+      rust: stable
       install:
         - rustup component add rustfmt
       script:
