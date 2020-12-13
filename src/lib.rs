@@ -55,14 +55,34 @@ pub struct DataPoint {
     pub y: f64,
 }
 
+/// DataPointLike
+///
+/// Abstract represent of DataPoint
+pub trait DataPointLike: Copy {
+    fn x(&self) -> f64;
+    fn y(&self) -> f64;
+}
+
+impl DataPointLike for DataPoint {
+    fn x(&self) -> f64 {
+        self.x
+    }
+
+    fn y(&self) -> f64 {
+        self.y
+    }
+}
+
 impl DataPoint {
     pub fn new(x: f64, y: f64) -> Self {
         DataPoint { x, y }
     }
 }
 
-pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
-    if threshold >= data.len() || threshold == 0 {
+pub fn lttb<T: DataPointLike>(data: Vec<T>, threshold: usize) -> Vec<T> {
+    let data_len = data.len();
+
+    if threshold >= data_len || threshold == 0 {
         // Nothing to do.
         return data;
     }
@@ -70,7 +90,7 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
     let mut sampled = Vec::with_capacity(threshold);
 
     // Bucket size. Leave room for start and end data points.
-    let every = ((data.len() - 2) as f64) / ((threshold - 2) as f64);
+    let every = (data_len - 2) / (threshold - 2);
 
     // Initially a is the first point in the triangle.
     let mut a = 0;
@@ -83,31 +103,31 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
         let mut avg_x = 0f64;
         let mut avg_y = 0f64;
 
-        let avg_range_start = (((i + 1) as f64) * every) as usize + 1;
+        let avg_range_start = ((i + 1) * every) + 1;
 
-        let mut end = (((i + 2) as f64) * every) as usize + 1;
-        if end >= data.len() {
-            end = data.len();
+        let mut end = ((i + 2) * every) + 1;
+        if end >= data_len {
+            end = data_len;
         }
         let avg_range_end = end;
 
         let avg_range_length = (avg_range_end - avg_range_start) as f64;
 
         for i in 0..(avg_range_end - avg_range_start) {
-            let idx = (avg_range_start + i) as usize;
-            avg_x += data[idx].x;
-            avg_y += data[idx].y;
+            let idx = avg_range_start + i;
+            avg_x += data[idx].x();
+            avg_y += data[idx].y();
         }
         avg_x /= avg_range_length;
         avg_y /= avg_range_length;
 
         // Get the range for this bucket.
-        let range_offs = ((i as f64) * every) as usize + 1;
-        let range_to = (((i + 1) as f64) * every) as usize + 1;
+        let range_offs = (i * every) + 1;
+        let range_to = ((i + 1) * every) + 1;
 
         // Point a.
-        let point_a_x = data[a].x;
-        let point_a_y = data[a].y;
+        let point_a_x = data[a].x();
+        let point_a_y = data[a].y();
 
         let mut max_area = -1f64;
         let mut next_a = range_offs;
@@ -115,8 +135,8 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
             let idx = (range_offs + i) as usize;
 
             // Calculate triangle area over three buckets.
-            let area = ((point_a_x - avg_x) * (data[idx].y - point_a_y)
-                - (point_a_x - data[idx].x) * (avg_y - point_a_y))
+            let area = ((point_a_x - avg_x) * (data[idx].y() - point_a_y)
+                - (point_a_x - data[idx].x()) * (avg_y - point_a_y))
                 .abs()
                 * 0.5;
             if area > max_area {
@@ -130,7 +150,7 @@ pub fn lttb(data: Vec<DataPoint>, threshold: usize) -> Vec<DataPoint> {
     }
 
     // Always add the last point.
-    sampled.push(data[data.len() - 1]);
+    sampled.push(data[data_len - 1]);
 
     sampled
 }
